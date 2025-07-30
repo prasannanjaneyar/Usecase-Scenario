@@ -67,5 +67,5 @@ stages:
                     namespace: 'default'
                     command: 'apply'
                     useConfigurationFile: true
-                    configuration: '$(System.DefaultWorkingDirectory)/deployment.yaml'
+                    configuration: '*/deployment.yaml'
                     secretType: 'None'
