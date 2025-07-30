@@ -41,6 +41,7 @@ stages:
                 $(tag)
                 latest
   - stage: Deploy
+<<<<<<< HEAD
     displayName: Deploy to AKS
     jobs:
       - deployment: DeployApp
@@ -68,3 +69,35 @@ stages:
                     useConfigurationFile: true
                     configuration: $(System.DefaultWorkingDirectory)/deployment.yaml
                     secretType: None
+=======
+  displayName: Deploy to AKS
+  jobs:
+    - deployment: DeployApp
+      displayName: Deploy to AKS Cluster
+      environment: 'aks-dev'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - script: |
+                  echo "Current working directory:"
+                  pwd
+                  echo "Listing contents:"
+                  ls -la $(System.DefaultWorkingDirectory)
+                displayName: 'Debug: Show working directory contents'
+
+              - task: Kubernetes@1
+                displayName: Apply deployment to AKS
+                inputs:
+                  connectionType: 'Azure Resource Manager'
+                  azureSubscription: 'Azure subscription 1(5e47e5a1-7dc4-4abb-87a2-f371200842ea)'
+                  azureResourceGroup: 'rg-aks-demo'
+                  kubernetesCluster: 'aks-demo'
+                  namespace: 'default'
+                  command: 'apply'
+                  useConfigurationFile: true
+                  configuration: $(System.DefaultWorkingDirectory)/deployment.yaml
+                  secretType: 'None'
+
+
+>>>>>>> f9d5b26cc6988b5bf1ed985f9173411b6c73df7d
