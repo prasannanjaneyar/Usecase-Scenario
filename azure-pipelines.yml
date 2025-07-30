@@ -43,29 +43,34 @@ stages:
   - stage: Deploy
     displayName: Deploy to AKS
     jobs:
-      - deployment: DeployApp
-        displayName: Deploy to AKS Cluster
-        environment: aks-dev
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: |
-                    echo "Current working directory:"
-                    pwd
-                    echo "Listing contents:"
-                    ls -la $(System.DefaultWorkingDirectory)
-                  displayName: "Debug: Show working directory contents"
+    - deployment: DeployApp
+      displayName: Deploy to AKS Cluster
+      environment: aks-dev
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self  # Add this line
+              
+              - script: |
+                  echo "Current working directory:"
+                  pwd
+                  echo "Listing contents:"
+                  ls -la $(System.DefaultWorkingDirectory)
+                  echo "Build sources directory:"
+                  ls -la $(Build.SourcesDirectory)
+                displayName: "Debug: Show working directory contents"
 
-                - task: Kubernetes@1
-                  displayName: Apply deployment to AKS
-                  inputs:
-                    connectionType: 'Azure Resource Manager'
-                    azureSubscriptionEndpoint: 'My-Azure-RM-Connection'
-                    azureResourceGroup: 'rg-aks-demo'
-                    kubernetesCluster: 'aks-demo'
-                    namespace: 'default'
-                    command: 'apply'
-                    useConfigurationFile: true
-                    configuration: '$(Build.SourcesDirectory)/deployment.yaml'
-                    secretType: 'None'
+
+              - task: Kubernetes@1
+                displayName: Apply deployment to AKS
+                inputs:
+                  connectionType: 'Azure Resource Manager'
+                  azureSubscriptionEndpoint: 'My-Azure-RM-Connection'
+                  azureResourceGroup: 'rg-aks-demo'
+                  kubernetesCluster: 'aks-demo'
+                  namespace: 'default'
+                  command: 'apply'
+                  useConfigurationFile: true
+                  configuration: '$(Build.SourcesDirectory)/deployment.yaml'
+                  secretType: 'None'
