@@ -5,7 +5,7 @@ Creating node js application docker image.
   app.js
   package.json
 the sample code is available in the file.
-#First we need to create docker image from the Dockerfile the command is:
+#First we need to Build Docker image from the Dockerfile the command is:
 #Build Docker image
 docker build -t node-docker-sample .
 
@@ -22,8 +22,11 @@ App listening at http://localhost:3000
 you can test the application using the url.
 
 #Before pushing the docker image to Azure container registery, 
-#we need to create azure contianer registery in azure portal(here the acr name is -containerregi.azurecr.io)
-#Log in to your ACR
+#we need to create azure contianer registery in azure portal(ACR name is - containerregi.azurecr.io)
+#First login to Azure and Log in to your ACR
+
+az login  or az login --use-device-code
+
 az acr login --name containerregi.azurecr.io
 
 #Get the login server name:
