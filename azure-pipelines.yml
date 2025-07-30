@@ -96,4 +96,11 @@ stages:
                   command: 'apply'
                   useConfigurationFile: true
                   configuration: $(System.DefaultWorkingDirectory)/deployment.yaml
+<<<<<<< HEAD
                   secretType: 'None'
+=======
+                  secretType: 'None'
+
+
+
+>>>>>>> 40adbb1134ff7fa4555cc4783d51f7e8e1df1f53
