@@ -29,10 +29,10 @@ stages:
             displayName: Build Docker image
             inputs:
               containerRegistry: 'ACR-SVC'
-              repository: '$(imageName)'
-              command: 'build'
-              Dockerfile: src/Dockerfile
-              buildContext: src
+              repository: $(imageName)
+              command: build
+              Dockerfile: 'Dockerfile'
+              buildContext: '$(Build.SourcesDirectory)'
               tags: |
                 $(tag)
                 latest
