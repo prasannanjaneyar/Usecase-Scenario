@@ -23,6 +23,11 @@ stages:
 
         steps:
           - checkout: self
+          - script: |
+              echo "Listing files in the source directory:"
+              ls -R $(Build.SourcesDirectory)
+              displayName: 'List repo files'
+
 
           - task: Docker@2
             displayName: Build Docker image
