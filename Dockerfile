@@ -1,5 +1,6 @@
 # Use an official Node.js base image
-FROM node:18-alpine
+#FROM node:18-alpine
+FROM containerregi.azurecr.io/node-docker-sample:latest
 
 # Set working directory inside container
 WORKDIR /app
