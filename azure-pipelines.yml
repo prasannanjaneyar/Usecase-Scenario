@@ -46,3 +46,27 @@ stages:
               tags: |
                 $(tag)
                 latest
+# CD pipeline
+  - stage: Deploy
+    displayName: Deploy to AKS
+    jobs:
+      - deployment: DeployApp
+        displayName: Deploy to AKS Cluster
+        environment: 'aks-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: Kubernetes@1
+                  displayName: Set kubectl context
+                  inputs:
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'Azure subscription 1(5e47e5a1-7dc4-4abb-87a2-f371200842ea)'
+                    azureResourceGroup: 'rg-aks-demo'
+                    kubernetesCluster: 'aks-demo'
+                    namespace: 'default'
+                    command: 'apply'
+                    useConfigurationFile: true
+                    configuration: 'deployment.yaml'
+                    secretType: 'None'
+
