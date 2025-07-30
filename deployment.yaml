@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-sample
+  template:
+    metadata:
+      labels:
+        app: node-sample
+    spec:
+      containers:
+        - name: node-sample
+          image: containerregi.azurecr.io/node-docker-sample:latest
+          ports:
+            - containerPort: 3000
