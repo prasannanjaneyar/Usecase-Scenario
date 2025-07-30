@@ -56,15 +56,16 @@ stages:
                     echo "Listing contents:"
                     ls -la $(System.DefaultWorkingDirectory)
                   displayName: "Debug: Show working directory contents"
+
                 - task: Kubernetes@1
                   displayName: Apply deployment to AKS
                   inputs:
-                    connectionType: Azure Resource Manager
-                    azureSubscription: Azure subscription 1(5e47e5a1-7dc4-4abb-87a2-f371200842ea)
-                    azureResourceGroup: rg-aks-demo
-                    kubernetesCluster: aks-demo
-                    namespace: default
-                    command: apply
+                    connectionType: 'Azure Resource Manager'
+                    azureSubscriptionEndpoint: 'My-Azure-RM-Connection'
+                    azureResourceGroup: 'rg-aks-demo'
+                    kubernetesCluster: 'aks-demo'
+                    namespace: 'default'
+                    command: 'apply'
                     useConfigurationFile: true
-                    configuration: $(System.DefaultWorkingDirectory)/deployment.yaml
-                    secretType: None
+                    configuration: '$(System.DefaultWorkingDirectory)/deployment.yaml'
+                    secretType: 'None'
