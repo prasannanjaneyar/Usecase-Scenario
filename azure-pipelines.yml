@@ -27,8 +27,9 @@ stages:
           - task: Docker@2
             displayName: Build Docker image
             inputs:
-              command: build
-              repository: $(imageName)
+              containerRegistry: 'ACR-SVC'
+              repository: '$(imageName)'
+              command: 'build'
               Dockerfile: '**/Dockerfile'
               tags: |
                 $(tag)
@@ -37,9 +38,9 @@ stages:
           - task: Docker@2
             displayName: Push image to ACR
             inputs:
-              command: push
-              repository: $(imageName)
+              containerRegistry: 'ACR-SVC'
+              repository: '$(imageName)'
+              command: 'push'
               tags: |
                 $(tag)
                 latest
-              containerRegistry: '<AzureDevOpsACRServiceConnectionName>'
