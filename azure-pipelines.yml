@@ -30,8 +30,8 @@ stages:
               containerRegistry: 'ACR-SVC'
               repository: '$(imageName)'
               command: 'build'
-              Dockerfile: 'Dockerfile'
-              buildContext: '$(Build.SourcesDirectory)'
+              Dockerfile: src/Dockerfile
+              buildContext: src
               tags: |
                 $(tag)
                 latest
