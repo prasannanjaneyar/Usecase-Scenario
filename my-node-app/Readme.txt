@@ -45,6 +45,17 @@ docker push containerregi.azurecr.io/node-docker-sample:v1
 az acr repository list --name containerregi.azurecr.io --output table
 
 Now the Docker image is avaiable in ACR.
+Build is completed CI
+#Deploy the docker image to AKS and testt he application.
+#Now deployment stage.
+#Create AKS cluster using the terraform or azure portal.
+#integration between Azure Kubernetes Service (AKS) and Azure Container Registry (ACR) to enable secure image pulling.
+#Using the data argument we can import the acr and Role Assignment.
+Once AKS is deployed,go to azure devops orginixation -> create new project.
+create service connections for docker hub service, aks and azure subscription - grant the pipeline access to run the pipeline automatically.
+you can see the pipeline steps in azure-pipeline.yml.
+Create deployment.yml file to deploy the pod in aks.
+
 ===========================
 commands:
 az acr login --name containerregi.azurecr.io
@@ -52,3 +63,113 @@ az acr show --name containerregi.azurecr.io --query "loginServer" --output tsv
 docker tag node-docker-sample containerregi.azurecr.io/node-docker-sample:v1
 docker push containerregi.azurecr.io/node-docker-sample:v1
 az acr repository list --name containerregi.azurecr.io --output table
+=================================
+sample deployment.yml file:
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-sample
+  labels:
+    app: node-sample               # <-- Add this
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-sample
+  template:
+    metadata:
+      labels:
+        app: node-sample
+    spec:
+      containers:
+        - name: node-sample
+          image: containerregi.azurecr.io/node-docker-sample:latest
+          ports:
+            - containerPort: 3000
+
+=================================================================
+
+sample azure-pipeline.yml
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+---
+trigger:
+  branches:
+    include:
+      - main
+variables:
+  imageName: node-docker-sample
+  tag: $(Build.BuildId)
+stages:
+  - stage: BuildAndPush
+    displayName: Build and Push to ACR
+    jobs:
+      - job: Build
+        displayName: Build and Push Docker Image
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+          - task: Docker@2
+            displayName: 'Login to Docker Hub'
+            inputs:
+              containerRegistry: 'DockerHubServiceConnection'
+              command: 'login'
+
+          - task: Docker@2
+            displayName: Build Docker image
+            inputs:
+              containerRegistry: ACR-SVC
+              repository: $(imageName)
+              command: build
+              Dockerfile: Dockerfile
+              buildContext: $(Build.SourcesDirectory)
+              tags: |
+                $(tag)
+                latest
+          - task: Docker@2
+            displayName: Push image to ACR
+            inputs:
+              containerRegistry: ACR-SVC
+              repository: $(imageName)
+              command: push
+              tags: |
+                $(tag)
+                latest
+  - stage: Deploy
+    displayName: Deploy to AKS
+    jobs:
+    - deployment: DeployApp
+      displayName: Deploy to AKS Cluster
+      environment: aks-dev
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self  # Add this line
+              
+              - script: |
+                  echo "Current working directory:"
+                  pwd
+                  echo "Listing contents:"
+                  ls -la $(System.DefaultWorkingDirectory)
+                  echo "Build sources directory:"
+                  ls -la $(Build.SourcesDirectory)
+                displayName: "Debug: Show working directory contents"
+
+
+              - task: Kubernetes@1
+                displayName: Apply deployment to AKS
+                inputs:
+                  connectionType: 'Azure Resource Manager'
+                  azureSubscriptionEndpoint: 'My-Azure-RM-Connection'
+                  azureResourceGroup: 'rg-aks-demo'
+                  kubernetesCluster: 'aks-demo'
+                  namespace: 'default'
+                  command: 'apply'
+                  useConfigurationFile: true
+                  configuration: '$(Build.SourcesDirectory)/deployment.yaml'
+                  secretType: 'None'
