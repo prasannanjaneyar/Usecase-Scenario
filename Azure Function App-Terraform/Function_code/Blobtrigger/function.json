@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "name": "myBlob",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "function-triggers/{name}",
+      "connection": "BlobStorageConnection"
+    }
+  ],
+  "disabled": false
+}
