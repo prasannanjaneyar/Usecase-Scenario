@@ -1,0 +1,105 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - '*'
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - '*'
+
+variables:
+  imageName: dotnetwebapp
+  imageTag: '$(Build.BuildId)'
+  acrServiceConnection: 'ACR-SVC'             # Docker Registry service connection pointing to your ACR
+  azureSubscription: '<Azure-ARM-Connection>' # Azure Resource Manager service connection for AKS access
+  resourceGroup: 'demo-rg'                    # same RG where AKS lives
+  aksClusterName: 'demo-aks'
+  k8sDeployment: 'k8s/deployment.yaml'
+  k8sService: 'k8s/service.yaml'
+
+stages:
+  - stage: BuildAndPush
+    displayName: Build and Push Docker Image
+    jobs:
+      - job: BuildImage
+        displayName: Build & Push to ACR
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+
+          # Build Docker image
+          - task: Docker@2
+            displayName: Build image
+            inputs:
+              command: build
+              repository: $(imageName)
+              dockerfile: DotNetWebApp/Dockerfile
+              containerRegistry: $(acrServiceConnection)
+              tags: |
+                $(imageTag)
+                latest
+
+          # Push Docker image
+          - task: Docker@2
+            displayName: Push image
+            inputs:
+              command: push
+              repository: $(imageName)
+              containerRegistry: $(acrServiceConnection)
+              tags: |
+                $(imageTag)
+                latest
+
+          # Capture full image reference for downstream
+          - task: PowerShell@2
+            name: SetImageVar
+            inputs:
+              targetType: inline
+              script: |
+                $loginServer = (az acr show --name $(ACR_NAME) --resource-group $(resourceGroup) --query loginServer -o tsv)
+                Write-Host "##vso[task.setvariable variable=fullImage]$($loginServer)/$(imageName):$(imageTag)"
+            env:
+              AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY: $(servicePrincipalKey) # if needed for az login
+
+  - stage: Deploy
+    displayName: Deploy to AKS
+    dependsOn: BuildAndPush
+    jobs:
+      - deployment: AKSDeploy
+        displayName: Deploy to AKS
+        environment: aks
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Get AKS Credentials & Deploy
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      set -e
+                      az aks get-credentials -g $(resourceGroup) -n $(aksClusterName) --overwrite-existing
+
+                      # Replace placeholder in manifest with built image (if placeholder exists)
+                      if grep -q "<IMAGE_PLACEHOLDER>" $(k8sDeployment); then
+                        sed -i "s|<IMAGE_PLACEHOLDER>|$(fullImage)|g" $(k8sDeployment)
+                      fi
+
+                      kubectl apply -f $(k8sDeployment)
+                      kubectl apply -f $(k8sService)
+
+                      echo "Waiting for external IP..."
+                      kubectl wait --for=condition=available deployment/dotnet-webapp --timeout=120s
+                      kubectl get svc dotnet-webapp-svc -o wide

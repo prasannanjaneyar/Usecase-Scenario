@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dotnet-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dotnet-webapp
+  template:
+    metadata:
+      labels:
+        app: dotnet-webapp
+    spec:
+      containers:
+        - name: dotnet-webapp
+          image: dotnetappacr.azurecr.io/dotnetwebapp:latest  # replace in pipeline with real login server
+          ports:
+            - containerPort: 80
+          imagePullPolicy: Always

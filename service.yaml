@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dotnet-webapp-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: dotnet-webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
