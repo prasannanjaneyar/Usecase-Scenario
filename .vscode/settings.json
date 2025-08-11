@@ -1,0 +1,6 @@
+{
+    "azureFunctions.deploySubpath": "Azure Function App-Terraform\\Function_code",
+    "azureFunctions.projectLanguage": "C#Script",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen"
+}
